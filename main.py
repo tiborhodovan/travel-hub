@@ -39,12 +39,22 @@ except KeyError as e:
 notion = Client(auth=NOTION_API_KEY)
 
 
-def get_target_month() -> str:
-    """Kiszámolja a következő májust YYYY-MM formátumban.
+def get_data_source_id() -> str:
+    """2025 szeptembere óta a Notion külön kezeli az adatbázist (a 'tartót')
+    és az azon belüli data source-t (a tényleges táblát, mezőkkel és
+    sorokkal). A lekérdezéshez és az új sorok létrehozásához a data
+    source ID kell, nem a database ID. Egyszerű, nem megosztott
+    adatbázisnál mindig pontosan egy data source tartozik hozzá - ezt
+    kérjük le itt egyszer."""
+    db = notion.databases.retrieve(database_id=NOTION_DATABASE_ID)
+    data_sources = db.get("data_sources", [])
+    if not data_sources:
+        sys.exit("Nem található data source ehhez az adatbázishoz - ellenőrizd a NOTION_DATABASE_ID-t.")
+    return data_sources[0]["id"]
 
-    Ha most május vagy korábbi hónap van, az idei májust figyeljük.
-    Ha már elmúlt május, a jövő évi májust.
-    """
+
+def get_target_month() -> str:
+    """Kiszámolja a következő májust YYYY-MM formátumban."""
     today = date.today()
     year = today.year if today.month <= 5 else today.year + 1
     return f"{year}-05"
@@ -75,7 +85,7 @@ def fetch_prices(origin: str, destination: str, month: str) -> list[dict]:
     return list(payload.get("data", {}).values())
 
 
-def load_existing_pages() -> dict:
+def load_existing_pages(data_source_id: str) -> dict:
     """Beolvassa a Notion adatbázis összes meglévő sorát egyetlen menetben,
     hogy tudjuk, melyik (honnan, hova, odautazás dátuma) kombinációhoz
     van már sor - ezt frissítjük majd insert helyett."""
@@ -83,11 +93,11 @@ def load_existing_pages() -> dict:
     cursor = None
 
     while True:
-        query = {"database_id": NOTION_DATABASE_ID, "page_size": 100}
+        query = {"data_source_id": data_source_id, "page_size": 100}
         if cursor:
             query["start_cursor"] = cursor
 
-        result = notion.databases.query(**query)
+        result = notion.data_sources.query(**query)
 
         for page in result["results"]:
             props = page["properties"]
@@ -123,10 +133,11 @@ def build_properties(origin, destination, depart_date, return_date, price, link)
 
 
 def main():
+    data_source_id = get_data_source_id()
     month = get_target_month()
     print(f"Célhónap: {month}")
 
-    existing_pages = load_existing_pages()
+    existing_pages = load_existing_pages(data_source_id)
     print(f"Meglévő sorok a Notionban: {len(existing_pages)}")
 
     updated = 0
@@ -157,7 +168,10 @@ def main():
                 notion.pages.update(page_id=existing_pages[key], properties=props)
                 updated += 1
             else:
-                notion.pages.create(parent={"database_id": NOTION_DATABASE_ID}, properties=props)
+                notion.pages.create(
+                    parent={"type": "data_source_id", "data_source_id": data_source_id},
+                    properties=props,
+                )
                 created += 1
 
     print(f"\nKész. Frissítve: {updated} sor, létrehozva: {created} sor.")
