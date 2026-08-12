@@ -1,2 +1,2 @@
 requests==2.32.3
-notion-client==2.2.1
+notion-client==3.1.0
