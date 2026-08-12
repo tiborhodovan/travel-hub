@@ -1,0 +1,30 @@
+name: Daily flight price check
+
+on:
+  schedule:
+    # Minden nap 6:00 UTC-kor (nyáron kb. 8:00, télen kb. 7:00 magyar idő szerint)
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    # Ezzel a GitHub felületén (Actions fül) kézzel is elindíthatod, tesztelésre jó
+
+jobs:
+  check-prices:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run price check
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
+        run: python main.py
