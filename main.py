@@ -103,6 +103,7 @@ def fetch_prices(origin: str, destination: str, month: str) -> list[dict]:
         "group_by": "departure_at",
         "currency": CURRENCY,
         "market": MARKET_BY_ORIGIN.get(origin, DEFAULT_MARKET),
+        "one_way": "false",  # csak oda-vissza jegyek kellenek, ne egyirányúak
         "token": TRAVELPAYOUTS_TOKEN,
     }
 
