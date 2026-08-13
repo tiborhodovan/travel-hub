@@ -18,6 +18,9 @@ ROUTES = [
     ("BUD", "EDI"),  # Budapest -> Edinburgh
     ("BUD", "GLA"),  # Budapest -> Glasgow
     ("VIE", "EDI"),  # Bécs -> Edinburgh
+    # ("BUD", "LON"),  # ideiglenes teszt-útvonal - vedd ki a # jelet, ha a fentiek
+    #                  # továbbra is 0 találatot adnak, hogy lássuk, egy forgalmas
+    #                  # útvonalon egyáltalán jön-e adat a market=en beállítással
 ]
 
 # A pontosan 7 napos szűrés túl szigorúnak bizonyult ezekre a kisebb
@@ -93,6 +96,7 @@ def fetch_prices(origin: str, destination: str, month: str) -> list[dict]:
         "min_trip_duration": TRIP_MIN_DURATION,
         "max_trip_duration": TRIP_MAX_DURATION,
         "currency": CURRENCY,
+        "market": "en",  # alapértelmezetten "ru" (orosz piac) - nekünk nemzetközi kell
         "token": TRAVELPAYOUTS_TOKEN,
     }
     response = requests.get(url, params=params, timeout=30)
