@@ -20,7 +20,12 @@ ROUTES = [
     ("VIE", "EDI"),  # Bécs -> Edinburgh
 ]
 
-TRIP_DURATION_DAYS = 7
+# A pontosan 7 napos szűrés túl szigorúnak bizonyult ezekre a kisebb
+# forgalmú útvonalakra (a cache-alapú API-ban alig van rá találat) - ezért
+# egy kis rugalmasságot engedünk: 6-8 nap közötti utakat is elfogadunk,
+# és a legolcsóbbat választjuk közülük naponta.
+TRIP_MIN_DURATION = 6
+TRIP_MAX_DURATION = 8
 CURRENCY = "eur"
 
 # A Notion "title" mezőjének a neve. Alapértelmezetten "Name",
@@ -64,7 +69,13 @@ def get_data_source_id() -> str:
 
 
 def get_target_month() -> str:
-    """Kiszámolja a következő májust YYYY-MM formátumban."""
+    """Kiszámolja a célhónapot. Ha be van állítva a TEST_MONTH környezeti
+    változó (pl. a workflow kézi indításánál teszteléshez), azt használja -
+    így közelebbi hónapokkal is ki lehet próbálni, van-e egyáltalán adat
+    az adott útvonalra. Egyébként a következő májust számolja ki."""
+    override = os.environ.get("TEST_MONTH", "").strip()
+    if override:
+        return override
     today = date.today()
     year = today.year if today.month <= 5 else today.year + 1
     return f"{year}-05"
@@ -79,8 +90,8 @@ def fetch_prices(origin: str, destination: str, month: str) -> list[dict]:
         "destination": destination,
         "departure_at": month,
         "group_by": "departure_at",
-        "min_trip_duration": TRIP_DURATION_DAYS,
-        "max_trip_duration": TRIP_DURATION_DAYS,
+        "min_trip_duration": TRIP_MIN_DURATION,
+        "max_trip_duration": TRIP_MAX_DURATION,
         "currency": CURRENCY,
         "token": TRAVELPAYOUTS_TOKEN,
     }
