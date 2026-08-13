@@ -6,6 +6,11 @@ on:
     - cron: "0 6 * * *"
   workflow_dispatch:
     # Ezzel a GitHub felületén (Actions fül) kézzel is elindíthatod, tesztelésre jó
+    inputs:
+      test_month:
+        description: "Teszt hónap felülbírálása (pl. 2026-10). Üresen hagyva az alapértelmezett 'következő május' lesz használva."
+        required: false
+        default: ""
 
 jobs:
   check-prices:
@@ -27,4 +32,5 @@ jobs:
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
+          TEST_MONTH: ${{ github.event.inputs.test_month }}
         run: python main.py
