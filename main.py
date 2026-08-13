@@ -18,7 +18,7 @@ ROUTES = [
     ("BUD", "EDI"),  # Budapest -> Edinburgh
     ("BUD", "GLA"),  # Budapest -> Glasgow
     ("VIE", "EDI"),  # Bécs -> Edinburgh
-    # ("BUD", "LON"),  # ideiglenes teszt-útvonal - vedd ki a # jelet, ha a fentiek
+    ("BUD", "LON"),  # ideiglenes teszt-útvonal - vedd ki a # jelet, ha a fentiek
     #                  # továbbra is 0 találatot adnak, hogy lássuk, egy forgalmas
     #                  # útvonalon egyáltalán jön-e adat a market=en beállítással
 ]
