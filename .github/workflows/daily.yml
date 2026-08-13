@@ -11,6 +11,10 @@ on:
         description: "Teszt hónap felülbírálása (pl. 2026-10). Üresen hagyva az alapértelmezett 'következő május' lesz használva."
         required: false
         default: ""
+      test_any_duration:
+        description: "Diagnosztika: ha 'true', kikapcsolja az utazás hosszára vonatkozó szűrést"
+        required: false
+        default: "false"
 
 jobs:
   check-prices:
@@ -33,4 +37,5 @@ jobs:
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
           TEST_MONTH: ${{ github.event.inputs.test_month }}
+          TEST_ANY_DURATION: ${{ github.event.inputs.test_any_duration }}
         run: python main.py
