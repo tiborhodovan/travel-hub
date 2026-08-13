@@ -29,9 +29,19 @@ TITLE_PROPERTY_NAME = "Name"
 
 # --- Titkos kulcsok beolvasása (GitHub Secrets-ből jönnek) ---
 
+def normalize_notion_id(raw_id: str) -> str:
+    """Kitisztítja a Notion azonosítót, ha véletlenül a teljes URL vagy a
+    '?v=...' nézet-azonosító rész is bekerült a másolt szövegbe - csak a
+    tiszta ID-t tartja meg."""
+    cleaned = raw_id.split("?")[0]          # '?v=...' rész levágása
+    cleaned = cleaned.rstrip("/")
+    cleaned = cleaned.split("/")[-1]        # ha a teljes URL-t másolták be
+    return cleaned                          # a Notion API kötőjellel/anélkül is elfogadja
+
+
 try:
     NOTION_API_KEY = os.environ["NOTION_API_KEY"]
-    NOTION_DATABASE_ID = os.environ["NOTION_DATABASE_ID"]
+    NOTION_DATABASE_ID = normalize_notion_id(os.environ["NOTION_DATABASE_ID"])
     TRAVELPAYOUTS_TOKEN = os.environ["TRAVELPAYOUTS_TOKEN"]
 except KeyError as e:
     sys.exit(f"Hiányzó környezeti változó: {e}. Állítsd be a GitHub Secrets-ben (vagy lokálisan exportáld).")
