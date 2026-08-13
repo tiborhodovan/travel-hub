@@ -18,7 +18,7 @@ ROUTES = [
     ("BUD", "EDI"),  # Budapest -> Edinburgh
     ("BUD", "GLA"),  # Budapest -> Glasgow
     ("VIE", "EDI"),  # Bécs -> Edinburgh
-    ("BUD", "LON"),  # ideiglenes teszt-útvonal - vedd ki a # jelet, ha a fentiek
+    # ("BUD", "LON"),  # ideiglenes teszt-útvonal - vedd ki a # jelet, ha a fentiek
     #                  # továbbra is 0 találatot adnak, hogy lássuk, egy forgalmas
     #                  # útvonalon egyáltalán jön-e adat a market=en beállítással
 ]
@@ -30,6 +30,14 @@ ROUTES = [
 TRIP_MIN_DURATION = 6
 TRIP_MAX_DURATION = 8
 CURRENCY = "eur"
+
+# Piac-kód induló város szerint - lehet, hogy a helyi piac cache-ében
+# több a találat, mint az általános nemzetközi ("en") piacén.
+MARKET_BY_ORIGIN = {
+    "BUD": "hu",
+    "VIE": "at",
+}
+DEFAULT_MARKET = "en"
 
 # A Notion "title" mezőjének a neve. Alapértelmezetten "Name",
 # hacsak nem nevezted át az adatbázis létrehozásakor.
@@ -96,7 +104,7 @@ def fetch_prices(origin: str, destination: str, month: str) -> list[dict]:
         "min_trip_duration": TRIP_MIN_DURATION,
         "max_trip_duration": TRIP_MAX_DURATION,
         "currency": CURRENCY,
-        "market": "en",  # alapértelmezetten "ru" (orosz piac) - nekünk nemzetközi kell
+        "market": MARKET_BY_ORIGIN.get(origin, DEFAULT_MARKET),
         "token": TRAVELPAYOUTS_TOKEN,
     }
     response = requests.get(url, params=params, timeout=30)
@@ -170,7 +178,8 @@ def main():
     skipped_routes = []
 
     for origin, destination in ROUTES:
-        print(f"Lekérdezés: {origin} -> {destination}")
+        market = MARKET_BY_ORIGIN.get(origin, DEFAULT_MARKET)
+        print(f"Lekérdezés: {origin} -> {destination} (piac: {market})")
         try:
             results = fetch_prices(origin, destination, month)
         except requests.RequestException as e:
