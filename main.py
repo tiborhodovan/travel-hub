@@ -193,11 +193,21 @@ def main():
 
         print(f"  {len(results)} találat")
 
+        show_debug = os.environ.get("TEST_ANY_DURATION", "").strip().lower() in ("1", "true", "yes")
+
         for item in results:
+            return_at = item.get("return_at")
+            if not return_at:
+                continue  # egyirányú jegy, nekünk oda-vissza kell, kihagyjuk
+
             depart_date = item["departure_at"][:10]
-            return_date = item["return_at"][:10]
+            return_date = return_at[:10]
             price = item["price"]
             link = item.get("link")
+
+            if show_debug:
+                nights = (date.fromisoformat(return_date) - date.fromisoformat(depart_date)).days
+                print(f"    {depart_date} -> {return_date} ({nights} nap), ár: {price}")
 
             key = (origin, destination, depart_date)
             props = build_properties(origin, destination, depart_date, return_date, price, link)
