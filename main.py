@@ -101,12 +101,16 @@ def fetch_prices(origin: str, destination: str, month: str) -> list[dict]:
         "destination": destination,
         "departure_at": month,
         "group_by": "departure_at",
-        "min_trip_duration": TRIP_MIN_DURATION,
-        "max_trip_duration": TRIP_MAX_DURATION,
         "currency": CURRENCY,
         "market": MARKET_BY_ORIGIN.get(origin, DEFAULT_MARKET),
         "token": TRAVELPAYOUTS_TOKEN,
     }
+
+    # Diagnosztikai kapcsoló: ha be van kapcsolva, nem szűrünk az utazás
+    # hosszára, hogy lássuk, van-e EGYÁLTALÁN cache-elt adat az útvonalra.
+    if os.environ.get("TEST_ANY_DURATION", "").strip().lower() not in ("1", "true", "yes"):
+        params["min_trip_duration"] = TRIP_MIN_DURATION
+        params["max_trip_duration"] = TRIP_MAX_DURATION
     response = requests.get(url, params=params, timeout=30)
     response.raise_for_status()
     payload = response.json()
